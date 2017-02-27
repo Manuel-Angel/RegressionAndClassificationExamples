@@ -1,0 +1,4 @@
+feb 27, 2017 5:00:22 PM com.github.fommil.netlib.ARPACK <clinit>
+ADVERTENCIA: Failed to load implementation from: com.github.fommil.netlib.NativeSystemARPACK
+feb 27, 2017 5:00:22 PM com.github.fommil.netlib.ARPACK <clinit>
+ADVERTENCIA: Failed to load implementation from: com.github.fommil.netlib.NativeRefARPACK
