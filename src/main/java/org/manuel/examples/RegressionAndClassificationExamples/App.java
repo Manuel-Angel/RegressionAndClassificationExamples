@@ -1,4 +1,4 @@
-package org.inaoe.examples.RegressionAndClassificationExamples;
+package org.manuel.examples.RegressionAndClassificationExamples;
 
 /**
  * Hello world!
