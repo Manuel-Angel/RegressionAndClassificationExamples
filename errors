@@ -1,4 +1,2 @@
-feb 27, 2017 5:00:22 PM com.github.fommil.netlib.ARPACK <clinit>
-ADVERTENCIA: Failed to load implementation from: com.github.fommil.netlib.NativeSystemARPACK
-feb 27, 2017 5:00:22 PM com.github.fommil.netlib.ARPACK <clinit>
-ADVERTENCIA: Failed to load implementation from: com.github.fommil.netlib.NativeRefARPACK
+feb 27, 2017 11:40:12 PM com.github.fommil.jni.JniLoader liberalLoad
+INFORMACIÓN: successfully loaded /tmp/jniloader5352131870558146573netlib-native_system-linux-i686.so
