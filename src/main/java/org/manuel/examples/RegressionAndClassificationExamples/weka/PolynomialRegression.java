@@ -2,18 +2,16 @@ package org.manuel.examples.RegressionAndClassificationExamples.weka;
 
 import java.util.ArrayList;
 
-import weka.classifiers.Classifier;
-import weka.classifiers.bayes.net.search.fixed.FromFile;
-import weka.classifiers.meta.FilteredClassifier;
+import weka.classifiers.AbstractClassifier;
 import weka.core.Attribute;
 import weka.core.Capabilities;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.UnassignedClassException;
-import weka.filters.Filter;
 
-public class PolynomialRegression implements Classifier {
+
+public class PolynomialRegression extends AbstractClassifier{
 	weka.classifiers.functions.LinearRegression classifier;
 	Instances instances;
 	int degree; 
@@ -43,7 +41,7 @@ public class PolynomialRegression implements Classifier {
 			
 			for (int d = 2; d <= degree; d++) {
 				StringBuilder sb= new StringBuilder(data.attribute(j).name());
-				sb.append("_").append(d);
+				sb.append("^").append(d);
 				
 				attribs.add(new Attribute(sb.toString()));
 			}
@@ -52,24 +50,6 @@ public class PolynomialRegression implements Classifier {
 		Instances newInstances = new Instances(data.relationName()+"polynomial", attribs, data.numInstances());
 		for (int in = 0; in < data.numInstances(); in++) {
 			Instance inst= data.get(in);
-			/*double values[]=new double[newInstances.numAttributes()];
-			
-			for (att = 0; att < inst.numAttributes(); att++) {
-				values[att]=inst.value(att);
-			}
-			
-			for(int j=0;j<inst.numAttributes();j++){
-				if(inst.classIndex() == j){
-					continue;
-				}
-				double aux= values[j];
-				for (int d= 2; d <= degree; d++) {
-					aux*=values[j];
-					values[att++]= aux;
-				}
-			}
-			
-			Instance newInst = new DenseInstance(1.0, values);*/
 			Instance newInst = changeInstance(inst, newInstances.numAttributes());
 			newInstances.add(newInst);
 		}
@@ -106,7 +86,6 @@ public class PolynomialRegression implements Classifier {
 	public double classifyInstance(Instance instance) throws Exception {
 		instance.setDataset(instances);
 		Instance newInst= changeInstance(instance,instances.numAttributes());
-		double coeff[]= classifier.coefficients();
 		
 		
 		return classifier.classifyInstance(newInst);
@@ -114,14 +93,21 @@ public class PolynomialRegression implements Classifier {
 
 	@Override
 	public double[] distributionForInstance(Instance instance) throws Exception {
-		// TODO Auto-generated method stub
 		return classifier.distributionForInstance(instance);
 	}
 
 	@Override
 	public Capabilities getCapabilities() {
-		//TODO Auto-generated method stub
 		return classifier.getCapabilities();
 	}
-	
+	@Override
+	public String toString(){
+		return classifier.toString();
+	}
+	public double[] coefficients(){
+		return classifier.coefficients(); 
+	}
+	public String modelDescription(){
+		return instances.toString();
+	}
 }
