@@ -18,7 +18,8 @@ public class App
 {
     public static void main( String[] args ) throws Exception
     {
-    	testPolynomialRegression();
+    	//testPolynomialRegression();
+    	testXml();
     }
     public static void testPolynomialRegression() throws Exception{
     	long time= System.currentTimeMillis();
@@ -44,5 +45,9 @@ public class App
         Instances extrapolated=Util.extrapolate(ins, classifier, 5, 1);
         Util.compare(ins, extrapolated);
         //Util.plotData(ins);
+    }
+    static public void testXml(){
+    	Instances data= Util.readXML("weather-10.xml");
+    	System.out.println(data.toString());
     }
 }

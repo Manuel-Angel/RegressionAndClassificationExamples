@@ -2,6 +2,8 @@ package org.manuel.examples.RegressionAndClassificationExamples.weka;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -19,6 +21,13 @@ import weka.core.Utils;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.gui.visualize.PlotData2D;
 import weka.gui.visualize.ThresholdVisualizePanel;
+
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.*;
+import javax.xml.transform.stream.*;
+import org.xml.sax.*;
+import org.w3c.dom.*;
 
 public class Util {
 	/**
@@ -200,5 +209,78 @@ public class Util {
 		Arrays.fill(cp, true);
 		plots[1].setConnectPoints(cp);
 		plotData(plots);
+	}
+	
+	public static Instances createWeatherInstances(int size){
+		ArrayList<Attribute> atts = new ArrayList<>();
+		atts.add(new Attribute("cloudcover"));
+		atts.add(new Attribute("date", "yyyy-MM-dd HH:mm"));
+		atts.add(new Attribute("temp"));
+		atts.add(new Attribute("winddir"));
+		atts.add(new Attribute("windspeed"));
+		Instances in= new Instances("weatherReports", atts, size);
+		
+		return in;
+	}
+	public static Instances readXML(String xml){
+		Document dom;
+        // Make an  instance of the DocumentBuilderFactory
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db;
+        Instances inst= createWeatherInstances(100*24);
+		try {
+			db = dbf.newDocumentBuilder();
+			// parse using the builder to get the DOM mapping of the    
+	        // XML file
+			dom = db.parse(xml);
+	        Element doc = dom.getDocumentElement();
+	        Node reportes= doc.getElementsByTagName("weatherReports").item(0);
+	        
+	        String tag= reportes.getNodeName();
+	        
+	        NodeList nodos= reportes.getChildNodes();
+	        //System.out.println("Elemento: " + tag + "  valor: " + reportes.getNodeValue());
+	        for (int i = 0; i < nodos.getLength(); i++) {
+				Node nodo= nodos.item(i);
+				//System.out.println(nodo.getNodeName()+ " - "+ nodo.getNodeValue() +" - " + nodo.getNodeType());
+				NamedNodeMap atributos= nodo.getAttributes();
+				if(nodo.getNodeType() !=Node.ELEMENT_NODE)continue;
+				//if(atributos==null) continue;
+				double values[]= new double[5];
+				for (int j = 0; j < atributos.getLength(); j++) {
+					Node atributo=atributos.item(j);
+					//System.out.println(atributo.getNodeName() +"= \"" + atributo.getNodeValue() + "\" ");
+					switch(atributo.getNodeName()){
+						case "cloudcover":  values[0]= Double.parseDouble(atributo.getNodeValue()); break;
+						case "date":		inst.attribute(1);
+							values[1]= inst.attribute(1).parseDate(atributo.getNodeValue()); break;
+						case "temp":		values[2]= Double.parseDouble(atributo.getNodeValue()); break;
+						case "winddir": 	values[3]= Double.parseDouble(atributo.getNodeValue()); break;
+						case "windspeed": 	values[4]= Double.parseDouble(atributo.getNodeValue()); break;
+						default: throw new java.text.ParseException("Attribute does not exist", 1);
+					}
+					
+				}
+				Instance act=instance(values,inst);
+				inst.add(act);
+			}
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (DOMException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		inst.compactify();
+		return inst;
 	}
 }
