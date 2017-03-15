@@ -5,10 +5,14 @@ import java.util.ArrayList;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.PolynomialRegression;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.Util;
 
+import weka.classifiers.bayes.BayesNet;
+import weka.classifiers.bayes.net.estimate.SimpleEstimator;
+import weka.classifiers.bayes.net.search.local.K2;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.filters.unsupervised.attribute.Discretize;
 
 /**
  * Hello world!
@@ -49,5 +53,21 @@ public class App
     static public void testXml(){
     	Instances data= Util.readXML("weather-10.xml");
     	System.out.println(data.toString());
+    	
+    	Instances filteredData=Util.filterInstancesForBayesNet(data);
+    	System.out.println("Filtered data:\n" +filteredData);
+    	
+    	BayesNet red= new BayesNet();
+    	red.setEstimator(new SimpleEstimator());
+    	red.setSearchAlgorithm(new K2());
+    	try {
+			red.buildClassifier(filteredData);
+			String graph= red.graph();
+			System.out.println(graph);
+			Util.visualizeBayesNet(graph);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }
