@@ -267,8 +267,12 @@ public class Util {
 					//System.out.println(atributo.getNodeName() +"= \"" + atributo.getNodeValue() + "\" ");
 					switch(atributo.getNodeName()){
 						case "cloudcover":  values[0]= Double.parseDouble(atributo.getNodeValue()); break;
-						case "date":		inst.attribute(1);
-							values[1]= inst.attribute(1).parseDate(atributo.getNodeValue()); break;
+						case "date":
+							try{
+								values[1]= inst.attribute(1).parseDate(atributo.getNodeValue()); break;
+							}catch (ParseException e) {
+								System.out.println("error parseando " +atributo.getNodeValue()+" sera ingorado\n" + e);
+							}
 						case "temp":		values[2]= Double.parseDouble(atributo.getNodeValue()); break;
 						case "winddir": 	values[3]= Double.parseDouble(atributo.getNodeValue()); break;
 						case "windspeed": 	values[4]= Double.parseDouble(atributo.getNodeValue()); break;

@@ -12,6 +12,7 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.converters.ConverterUtils.DataSink;
 import weka.filters.unsupervised.attribute.Discretize;
 
 /**
@@ -51,9 +52,17 @@ public class App
         //Util.plotData(ins);
     }
     static public void testXml(){
-    	Instances data= Util.readXML("weather-10.xml");
+    	String nombre= "weather-100";
+    	Instances data= Util.readXML(nombre+".xml");
     	System.out.println(data.toString());
-    	
+    	try {
+			DataSink.write(nombre+".arff", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    public static void testBayesNetWithWeather(){
+    	Instances data= Util.readXML("weather-10.xml");
     	Instances filteredData=Util.filterInstancesForBayesNet(data);
     	System.out.println("Filtered data:\n" +filteredData);
     	
@@ -66,7 +75,6 @@ public class App
 			System.out.println(graph);
 			Util.visualizeBayesNet(graph);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
