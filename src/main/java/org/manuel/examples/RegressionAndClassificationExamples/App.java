@@ -2,6 +2,7 @@ package org.manuel.examples.RegressionAndClassificationExamples;
 
 import java.util.ArrayList;
 
+import org.manuel.examples.RegressionAndClassificationExamples.weka.BayesianNetwork;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.PolynomialRegression;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.Util;
 
@@ -24,7 +25,8 @@ public class App
     public static void main( String[] args ) throws Exception
     {
     	//testPolynomialRegression();
-    	testXml();
+    	//testXml();
+    	testBayesNetWithWeather();
     }
     public static void testPolynomialRegression() throws Exception{
     	long time= System.currentTimeMillis();
@@ -63,7 +65,7 @@ public class App
     }
     public static void testBayesNetWithWeather(){
     	Instances data= Util.readXML("weather-10.xml");
-    	Instances filteredData=Util.filterInstancesForBayesNet(data);
+    	Instances filteredData=BayesianNetwork.filterInstancesForBayesNet(data);
     	System.out.println("Filtered data:\n" +filteredData);
     	
     	BayesNet red= new BayesNet();
@@ -73,7 +75,7 @@ public class App
 			red.buildClassifier(filteredData);
 			String graph= red.graph();
 			System.out.println(graph);
-			Util.visualizeBayesNet(graph);
+			BayesianNetwork.visualizeBayesNet(graph);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
