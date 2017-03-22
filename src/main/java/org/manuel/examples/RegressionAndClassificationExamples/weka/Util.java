@@ -3,6 +3,7 @@ package org.manuel.examples.RegressionAndClassificationExamples.weka;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import weka.classifiers.bayes.net.estimate.SimpleEstimator;
 import weka.classifiers.bayes.net.search.local.K2;
 import weka.classifiers.evaluation.Evaluation;
 import weka.classifiers.evaluation.ThresholdCurve;
+import weka.classifiers.timeseries.TSForecaster;
+import weka.classifiers.timeseries.eval.TSEvaluation;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -37,6 +40,7 @@ import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
+
 import org.xml.sax.*;
 import org.w3c.dom.*;
 
@@ -310,5 +314,51 @@ public class Util {
 		inst.compactify();
 		return inst;
 	}
-	
+	public static void testTimeSeries(TSForecaster forecaster,Instances data, PrintStream progress){
+		try {
+			TSEvaluation evaluation= new TSEvaluation(data, 24);
+			testTimeSeries(forecaster, evaluation, progress);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public static void testTimeSeries(TSForecaster forecaster, Instances training, Instances test, PrintStream progress){
+		try {
+			TSEvaluation evaluation= new TSEvaluation(training, test);
+			testTimeSeries(forecaster, evaluation, progress);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	protected static void testTimeSeries(TSForecaster forecaster, TSEvaluation evaluation, PrintStream progress) throws Exception{
+		evaluation.evaluateForecaster(forecaster, true,progress);
+		String field=forecaster.getFieldsToForecast();
+		System.out.println("target: "+ field);
+		System.out.println(evaluation.printPredictionsForTestData("titulo", field, 1));
+		System.out.println(evaluation.toSummaryString());
+	}
+	public static void testTimeSeries(TimeSeries forecaster, Instances trainingData, int numInstPred){
+		int size=trainingData.numInstances();
+		Instances train = new Instances(trainingData, 0, size - numInstPred);
+        Instances test = new Instances(trainingData, size - numInstPred, numInstPred);
+        String target=forecaster.getFieldsToForecast();
+        Attribute att=trainingData.attribute(target);
+        try {
+			forecaster.buildClassifier(train);
+			System.out.printf("%-10s %-10s %-10s %-10s\n", "inst#", "actual","predicted","error");
+			double pred, act;
+			forecaster.setDebug(false);
+			for (int i = 0; i < test.numInstances(); i++) {
+				Instance testInt = test.get(i);
+				pred= forecaster.classifyInstance(testInt);
+				act=testInt.value(att);
+				System.out.printf("%-10d %-10f %-10f %-10f\n", i+1,act ,pred,pred -act );
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+	}
 }
+
