@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.manuel.examples.RegressionAndClassificationExamples.weka.BayesianNetwork;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.PolynomialRegression;
+import org.manuel.examples.RegressionAndClassificationExamples.weka.TimeSeries;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.Util;
 
 import weka.classifiers.bayes.BayesNet;
@@ -26,7 +27,9 @@ public class App
     {
     	//testPolynomialRegression();
     	//testXml();
-    	testBayesNetWithWeather();
+    	//testBayesNetWithWeather();
+    	//testBayesNetWithWeather();
+    	testTimeSeries();
     }
     public static void testPolynomialRegression() throws Exception{
     	long time= System.currentTimeMillis();
@@ -54,7 +57,7 @@ public class App
         //Util.plotData(ins);
     }
     static public void testXml(){
-    	String nombre= "weather-100";
+    	String nombre= "weather-10";
     	Instances data= Util.readXML(nombre+".xml");
     	System.out.println(data.toString());
     	try {
@@ -79,5 +82,26 @@ public class App
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+    }
+    public static void testTimeSeries(){
+    	try {
+			Instances datos = Util.instancesFromFile("weather-10.arff");//Util.readXML("weather-10.xml");
+			
+			Instance last= datos.lastInstance();
+			datos.delete(datos.numInstances()-1);
+			
+			TimeSeries timeseries = new TimeSeries();
+			timeseries.setDebug(true);
+			timeseries.setTimestamp("date");
+			timeseries.setFieldsToForecast("windspeed");
+			timeseries.buildClassifier(datos);
+			double predicted = timeseries.classifyInstance(last);
+			System.out.print("#inst "+ datos.numInstances()+ " ");
+			System.out.println("actual: "+ last.value(datos.attribute("windspeed")) + " predicted: "+ predicted);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
     }
 }
