@@ -102,7 +102,7 @@ public class App
 			//System.out.println("actual: "+ last.value(datos.attribute("windspeed")) + " predicted: "+ predicted);
 			
 			Util.testTimeSeries(timeseries, datos, 24);
-			Util.testTimeSeries(timeseries.forecaster, datos, System.out);
+			Util.testTimeSeries(timeseries.forecaster, datos, null);//System.out
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

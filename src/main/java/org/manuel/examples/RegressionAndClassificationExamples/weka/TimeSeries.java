@@ -19,6 +19,7 @@ public class TimeSeries extends AbstractClassifier {
 	public Classifier baseLearner;
 	public WekaForecaster forecaster;
 	public Instances instances;
+	public Instances primeData;
 	
 	private String timestamp;
 	private String fieldsToForecast;
@@ -150,8 +151,9 @@ public class TimeSeries extends AbstractClassifier {
 		if(m_Debug){
 			Date dateInst= new Date(time);
 			Date dateUlt= new Date(timeUlt);
-			System.out.println("fecha a pronosticar "+time + " " + dateInst.toString());
-			System.out.println("ultima fecha        "+timeUlt + " "+dateUlt.toString());
+			
+			System.out.println("ultima fecha        "+timeUlt + " "+ att.formatDate(timeUlt)); //dateUlt.toString());
+			System.out.println("fecha a pronosticar "+time + " " + att.formatDate(time));  //dateInst.toString());
 			System.out.println("delta: " + this.getTSLagMaker().getDeltaTime());
 			System.out.println("steps: " + steps);
 		}

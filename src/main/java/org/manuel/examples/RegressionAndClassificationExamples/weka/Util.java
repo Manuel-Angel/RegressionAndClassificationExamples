@@ -331,8 +331,18 @@ public class Util {
 		}
 	}
 	protected static void testTimeSeries(TSForecaster forecaster, TSEvaluation evaluation, PrintStream progress) throws Exception{
-		evaluation.evaluateForecaster(forecaster, true,progress);
+		PrintStream prog[];
+		if(progress==null){
+			prog= new PrintStream[0];
+		} else prog= new PrintStream[]{progress};
+		evaluation.setHorizon(24);
+		evaluation.evaluateForecaster(forecaster, true,prog);
+		//evaluation.setEvaluateOnTrainingData(false);
 		String field=forecaster.getFieldsToForecast();
+		System.out.println("evaluate with testing/training data " + evaluation.getEvaluateOnTestData()+
+				" " + evaluation.getEvaluateOnTrainingData());
+		System.out.println("prime window size: " + evaluation.getPrimeWindowSize());
+		System.out.println("priming with test data " +evaluation.getPrimeForTestDataWithTestData());
 		System.out.println("target: "+ field);
 		System.out.println(evaluation.printPredictionsForTestData("titulo", field, 1));
 		System.out.println(evaluation.toSummaryString());
@@ -343,17 +353,21 @@ public class Util {
         Instances test = new Instances(trainingData, size - numInstPred, numInstPred);
         String target=forecaster.getFieldsToForecast();
         Attribute att=trainingData.attribute(target);
+        double sum = 0, error;
         try {
 			forecaster.buildClassifier(train);
-			System.out.printf("%-10s %-10s %-10s %-10s\n", "inst#", "actual","predicted","error");
+			System.out.printf("%12s %12s %12s %12s\n", "inst#", "actual","predicted","error");
 			double pred, act;
-			forecaster.setDebug(false);
+			//forecaster.setDebug(false);
 			for (int i = 0; i < test.numInstances(); i++) {
 				Instance testInt = test.get(i);
 				pred= forecaster.classifyInstance(testInt);
 				act=testInt.value(att);
-				System.out.printf("%-10d %-10f %-10f %-10f\n", i+1,act ,pred,pred -act );
+				error=pred -act;
+				sum+=Math.abs(error);
+				System.out.printf("%12d %12f %12f %12f\n", i+1,act ,pred,error );
 			}
+			System.out.println("Mean absolute error: "+ (sum/test.numInstances()) + " N: " + test.numInstances());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
