@@ -1,5 +1,6 @@
 package org.manuel.examples.RegressionAndClassificationExamples;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 import org.manuel.examples.RegressionAndClassificationExamples.weka.BayesianNetwork;
@@ -10,6 +11,7 @@ import org.manuel.examples.RegressionAndClassificationExamples.weka.Util;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.net.estimate.SimpleEstimator;
 import weka.classifiers.bayes.net.search.local.K2;
+import weka.classifiers.timeseries.TSForecaster;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
@@ -93,14 +95,16 @@ public class App
 			timeseries.setDebug(true);
 			timeseries.setTimestamp("date");
 			timeseries.setFieldsToForecast("windspeed");
-			timeseries.buildClassifier(datos);
-			double predicted = timeseries.classifyInstance(last);
-			System.out.print("#inst "+ datos.numInstances()+ " ");
-			System.out.println("actual: "+ last.value(datos.attribute("windspeed")) + " predicted: "+ predicted);
+			//timeseries.buildClassifier(datos);
+			//double predicted = timeseries.classifyInstance(last);
+			//System.out.print("#inst "+ datos.numInstances()+ " ");
+			//System.out.println("actual: "+ last.value(datos.attribute("windspeed")) + " predicted: "+ predicted);
+			
+			Util.testTimeSeries(timeseries, datos, 24);
+			Util.testTimeSeries(timeseries.forecaster, datos, System.out);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	
     }
 }
