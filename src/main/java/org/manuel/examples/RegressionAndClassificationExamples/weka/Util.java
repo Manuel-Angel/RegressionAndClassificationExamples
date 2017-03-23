@@ -20,6 +20,7 @@ import weka.classifiers.bayes.net.search.local.K2;
 import weka.classifiers.evaluation.Evaluation;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.timeseries.TSForecaster;
+import weka.classifiers.timeseries.core.OverlayForecaster;
 import weka.classifiers.timeseries.eval.TSEvaluation;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -336,6 +337,7 @@ public class Util {
 			prog= new PrintStream[0];
 		} else prog= new PrintStream[]{progress};
 		evaluation.setHorizon(24);
+		//evaluation.setPrimeWindowSize(0);
 		evaluation.evaluateForecaster(forecaster, true,prog);
 		//evaluation.setEvaluateOnTrainingData(false);
 		String field=forecaster.getFieldsToForecast();
@@ -343,22 +345,27 @@ public class Util {
 				" " + evaluation.getEvaluateOnTrainingData());
 		System.out.println("prime window size: " + evaluation.getPrimeWindowSize());
 		System.out.println("priming with test data " +evaluation.getPrimeForTestDataWithTestData());
+		System.out.println("is using overlay data" + (evaluation instanceof OverlayForecaster));
+
 		System.out.println("target: "+ field);
-		System.out.println(evaluation.printPredictionsForTestData("titulo", field, 1));
+		System.out.println(evaluation.printPredictionsForTestData("titulo", field, 24));
 		System.out.println(evaluation.toSummaryString());
 	}
 	public static void testTimeSeries(TimeSeries forecaster, Instances trainingData, int numInstPred){
 		int size=trainingData.numInstances();
 		Instances train = new Instances(trainingData, 0, size - numInstPred);
         Instances test = new Instances(trainingData, size - numInstPred, numInstPred);
-        String target=forecaster.getFieldsToForecast();
-        Attribute att=trainingData.attribute(target);
+        testTimeSeries(forecaster, train, test);
+	}
+	public static void testTimeSeries(TimeSeries forecaster, Instances train, Instances test){
+		String target=forecaster.getFieldsToForecast();
+        Attribute att=train.attribute(target);
         double sum = 0, error;
         try {
 			forecaster.buildClassifier(train);
 			System.out.printf("%12s %12s %12s %12s\n", "inst#", "actual","predicted","error");
 			double pred, act;
-			//forecaster.setDebug(false);
+			forecaster.setDebug(false);
 			for (int i = 0; i < test.numInstances(); i++) {
 				Instance testInt = test.get(i);
 				pred= forecaster.classifyInstance(testInt);
@@ -372,7 +379,6 @@ public class Util {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        
 	}
 }
 

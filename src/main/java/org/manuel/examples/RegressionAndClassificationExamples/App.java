@@ -96,15 +96,29 @@ public class App
 			timeseries.setDebug(true);
 			timeseries.setTimestamp("date");
 			timeseries.setFieldsToForecast("windspeed");
+			timeseries.setBaseLearner(new weka.classifiers.functions.LinearRegression());
 			//timeseries.buildClassifier(datos);
 			//double predicted = timeseries.classifyInstance(last);
 			//System.out.print("#inst "+ datos.numInstances()+ " ");
 			//System.out.println("actual: "+ last.value(datos.attribute("windspeed")) + " predicted: "+ predicted);
-			
-			Util.testTimeSeries(timeseries, datos, 24);
-			Util.testTimeSeries(timeseries.forecaster, datos, null);//System.out
+			int numInstPred=24;
+			int size=datos.numInstances();
+			Instances train = new Instances(datos, 0, size - numInstPred);
+	        Instances test = new Instances(datos, size - numInstPred, numInstPred);
+	        int attIndex= test.attribute("windspeed").index();
+	        for (int i = 0; i < test.numInstances(); i++) {
+	        	//test.get(i).setValue(attIndex, 0);
+	        	//test.get(i).setMissing(attIndex);
+			}
+	        
+			//Util.testTimeSeries(timeseries, datos, 24);
+	        //Util.testTimeSeries(timeseries, train, test);
+	        //timeseries.buildClassifier(train);
+	        timeseries.classifyInstance(train, test);
+			//Util.testTimeSeries(timeseries.forecaster, datos, null);//System.out
+	        //timeseries.buildClassifier(train);
+			Util.testTimeSeries(timeseries.forecaster, train, test, null);//System.out
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
