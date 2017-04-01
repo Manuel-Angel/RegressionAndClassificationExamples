@@ -1,9 +1,15 @@
 package org.manuel.examples.RegressionAndClassificationExamples;
 
-import java.io.PrintStream;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import org.jfree.chart.ChartPanel;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.BayesianNetwork;
+import org.manuel.examples.RegressionAndClassificationExamples.weka.NewLagMaker;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.PolynomialRegression;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.TimeSeries;
 import org.manuel.examples.RegressionAndClassificationExamples.weka.Util;
@@ -11,13 +17,13 @@ import org.manuel.examples.RegressionAndClassificationExamples.weka.Util;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.net.estimate.SimpleEstimator;
 import weka.classifiers.bayes.net.search.local.K2;
-import weka.classifiers.timeseries.TSForecaster;
-import weka.core.Attribute;
+import weka.classifiers.timeseries.core.CustomPeriodicTest;
+import weka.classifiers.timeseries.eval.ErrorModule;
+import weka.classifiers.timeseries.eval.graph.JFreeChartDriver;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSink;
-import weka.filters.unsupervised.attribute.Discretize;
 
 /**
  * Hello world!
@@ -31,7 +37,8 @@ public class App
     	//testXml();
     	//testBayesNetWithWeather();
     	//testBayesNetWithWeather();
-    	testTimeSeries();
+    	//testTimeSeries();
+    	testTimeSeriesGraphic();
     }
     public static void testPolynomialRegression() throws Exception{
     	long time= System.currentTimeMillis();
@@ -118,6 +125,67 @@ public class App
 			//Util.testTimeSeries(timeseries.forecaster, datos, null);//System.out
 	        //timeseries.buildClassifier(train);
 			Util.testTimeSeries(timeseries.forecaster, train, test, null);//System.out
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    public static void testTimeSeriesGraphic(){
+    	try {
+			Instances datos = Util.instancesFromFile("SOLAR_PRODUCTION_TRIMED.arff");//SOLAR_PRODUCTION.arff//Util.readXML("weather-10.xml");
+			Instance last= datos.lastInstance();
+			//datos.delete(datos.numInstances()-1);
+			String targetName="kw" ;
+			TimeSeries timeseries = new TimeSeries();
+			timeseries.setDebug(true);
+			timeseries.setTimestamp("date");
+			timeseries.setFieldsToForecast(targetName);
+			timeseries.setBaseLearner(new weka.classifiers.functions.LinearRegression());
+			
+			
+			//timeseries.getTSLagMaker().setAddAMIndicator(true);
+			CustomPeriodicTest period= new CustomPeriodicTest(">=*:*:*:*:*:*:*:6:*:* <=*:*:*:*:*:*:*:18:*:*");
+			period.getLowerTest().setOperator(">=");
+			period.getLowerTest().setHourOfDay("6");
+			period.getUpperTest().setOperator("<=");
+			period.getUpperTest().setHourOfDay("18");
+			String periodicTest="day="+ period.toString()+"";
+			System.out.println(periodicTest);
+			timeseries.forecaster.setTSLagMaker(new NewLagMaker());
+			NewLagMaker lag=(NewLagMaker) timeseries.forecaster.getTSLagMaker();
+			lag.setIncludePowersOfTime(false);
+			lag.setIncludeTimeLagProducts(false);
+			lag.setPrimaryPeriodicFieldName("hour"); //hour*************
+			timeseries.forecaster.addCustomPeriodic(periodicTest);
+			
+			
+			int numInstPred=48;
+			int size=datos.numInstances();
+			Instances train = new Instances(datos, 0, size - numInstPred);
+	        Instances test = new Instances(datos, size - numInstPred, numInstPred);
+	        int attIndex= test.attribute(targetName).index();
+	        for (int i = 0; i < test.numInstances(); i++) {
+	        	//test.get(i).setValue(attIndex, 0);
+	        	//test.get(i).setMissing(attIndex);
+			}
+	        timeseries.setHorizon(24);
+	        timeseries.setPrimeWindowSize(24);
+	        //List<ErrorModule> preds= timeseries.classifyInstance(train, test);
+	        List<ErrorModule> preds= timeseries.forecast(train, test);
+			Util.testTimeSeries(timeseries.forecaster, train, test, null);//System.out
+			
+			JFreeChartDriver chart = new JFreeChartDriver();
+			List<Integer> stepsToPlot= new ArrayList<>(2);
+			stepsToPlot.add(1);
+			
+			//TODO also graph all the training data
+			JPanel graph= chart.getGraphPanelSteps(timeseries, preds, targetName, stepsToPlot, 0, train);
+			
+			JFrame jf = new JFrame("Time series");
+			jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			jf.setSize(800, 600);
+			jf.getContentPane().setLayout(new BorderLayout());
+			jf.getContentPane().add(graph, BorderLayout.CENTER);
+			jf.setVisible(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -26,7 +26,7 @@ import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 
-public class TimeSeries extends AbstractClassifier {
+public class TimeSeries extends AbstractClassifier implements TSForecaster{
 	private Classifier baseLearner;
 	public WekaForecaster forecaster;
 	public Instances instances;
@@ -36,7 +36,8 @@ public class TimeSeries extends AbstractClassifier {
 	private String fieldsToForecast;
 	private PrintStream progress;
 	private List<List<NumericPrediction>> forecastValues;
-
+	private int m_primeWindowSize = 24;
+	private int m_horizon = 24;
 	public TimeSeries() {
 		forecaster = new WekaForecaster();
 		forecaster.getTSLagMaker().setMinLag(1);
@@ -211,7 +212,7 @@ public class TimeSeries extends AbstractClassifier {
 		Instances rebuildData = null;
 
 		boolean m_rebuildModelAfterEachTestForecastStep = false;
-		int m_primeWindowSize = 1, m_horizon = 24;
+		//m_primeWindowSize = 24; m_horizon = 24;
 
 		forecaster.buildForecaster(m_trainingData);
 		
@@ -246,10 +247,10 @@ public class TimeSeries extends AbstractClassifier {
 
 			forecast = forecaster.forecast(m_horizon, progress);
 
-			List<NumericPrediction> predsAtStep = forecast.get(23);
+			List<NumericPrediction> predsAtStep = forecast.get(0);
 			
 			for (int j = 0; j < predsAtStep.size(); j++) {
-				System.out.print(predsAtStep.get(j).predicted()+"*");
+				System.out.print(predsAtStep.get(j).predicted()+",");
 			}
 			System.out.println();
 			
@@ -270,7 +271,7 @@ public class TimeSeries extends AbstractClassifier {
 			}
 		}
 
-		ErrorModule predsForStep = m_predictionsForTestData.get(24 -1);
+		ErrorModule predsForStep = m_predictionsForTestData.get(1 -1);
 	    List<NumericPrediction> preds = predsForStep
 	      .getPredictionsForTarget(getFieldsToForecast());
 	    
@@ -327,7 +328,6 @@ public class TimeSeries extends AbstractClassifier {
 		try {
 			forecaster.getTSLagMaker().setTimeStampField(timestamp);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		this.timestamp = timestamp;
@@ -341,7 +341,6 @@ public class TimeSeries extends AbstractClassifier {
 		try {
 			forecaster.setFieldsToForecast(fieldsToForecast);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		this.fieldsToForecast = fieldsToForecast;
@@ -356,4 +355,74 @@ public class TimeSeries extends AbstractClassifier {
 		this.baseLearner = baseLearner;
 	}
 
+	
+	
+	
+	@Override
+	public String getAlgorithmName() {
+		return baseLearner.getClass().getName();
+	}
+
+	@Override
+	public void reset() {
+		this.forecaster.reset();
+	}
+
+	@Override
+	public void buildForecaster(Instances insts, PrintStream... progress) throws Exception {
+		//buildClassifier(insts);
+		throw new RuntimeException("buildForecaster not implemented yet");
+	}
+
+	@Override
+	public void primeForecaster(Instances insts) throws Exception {
+		throw new RuntimeException("primeForecaster not implemented yet");
+		//this.forecaster.primeForecaster(insts);
+	}
+
+	@Override
+	public List<List<NumericPrediction>> forecast(int numSteps, PrintStream... progress) throws Exception {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("forecast not implemented yet");
+		//return this.forecaster.forecast(numSteps, progress);
+	}
+
+	@Override
+	public void runForecaster(TSForecaster forecaster, String[] options) {
+		// TODO Auto-generated method stub
+		throw new RuntimeException("not implemented yet");
+	}
+
+	public List<ErrorModule> forecast(Instances train, Instances test) throws Exception {
+		List<ErrorModule> preds= new ArrayList<>(1);
+		buildClassifier(train);
+		forecastValues = forecaster.forecast(test.numInstances());
+		
+		ErrorModule em= new ErrorModule();
+		List<String> f=new ArrayList<String>();
+		f.add(fieldsToForecast);
+		em.setTargetFields(f);
+		for (int i = 0; i < test.numInstances(); i++) {
+			List<NumericPrediction> predsForStepI = forecastValues.get(i);	
+			em.evaluateForInstance(predsForStepI, test.get(i));
+		}
+		preds.add(em);
+		return preds;
+	}
+
+	public int getHorizon() {
+		return m_horizon;
+	}
+
+	public void setHorizon(int m_horizon) {
+		this.m_horizon = m_horizon;
+	}
+
+	public int getPrimeWindowSize() {
+		return m_primeWindowSize;
+	}
+
+	public void setPrimeWindowSize(int m_primeWindowSize) {
+		this.m_primeWindowSize = m_primeWindowSize;
+	}
 }
