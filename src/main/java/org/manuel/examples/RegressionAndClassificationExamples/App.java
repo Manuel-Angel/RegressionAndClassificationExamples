@@ -135,9 +135,11 @@ public class App
 			Instance last= datos.lastInstance();
 			//datos.delete(datos.numInstances()-1);
 			String targetName="kw" ;
+			String xaxis="date";
+			
 			TimeSeries timeseries = new TimeSeries();
 			timeseries.setDebug(true);
-			timeseries.setTimestamp("date");
+			timeseries.setTimestamp(xaxis);
 			timeseries.setFieldsToForecast(targetName);
 			timeseries.setBaseLearner(new weka.classifiers.functions.LinearRegression());
 			
@@ -157,8 +159,7 @@ public class App
 			lag.setPrimaryPeriodicFieldName("hour"); //hour*************
 			timeseries.forecaster.addCustomPeriodic(periodicTest);
 			
-			
-			int numInstPred=48;
+			int numInstPred=24;
 			int size=datos.numInstances();
 			Instances train = new Instances(datos, 0, size - numInstPred);
 	        Instances test = new Instances(datos, size - numInstPred, numInstPred);
@@ -176,9 +177,9 @@ public class App
 			JFreeChartDriver chart = new JFreeChartDriver();
 			List<Integer> stepsToPlot= new ArrayList<>(2);
 			stepsToPlot.add(1);
-			
 			//TODO also graph all the training data
-			JPanel graph= chart.getGraphPanelSteps(timeseries, preds, targetName, stepsToPlot, 0, train);
+			//JPanel graph= chart.getGraphPanelSteps(timeseries, preds, targetName, stepsToPlot, 0, train);
+			JPanel graph= Util.graphSeries(preds.get(0), datos, targetName, xaxis);
 			
 			JFrame jf = new JFrame("Time series");
 			jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

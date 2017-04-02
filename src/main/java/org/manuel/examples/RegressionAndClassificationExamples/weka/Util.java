@@ -9,18 +9,22 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.net.estimate.SimpleEstimator;
 import weka.classifiers.bayes.net.search.local.K2;
 import weka.classifiers.evaluation.Evaluation;
+import weka.classifiers.evaluation.NumericPrediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.timeseries.TSForecaster;
 import weka.classifiers.timeseries.core.OverlayForecaster;
+import weka.classifiers.timeseries.eval.ErrorModule;
 import weka.classifiers.timeseries.eval.TSEvaluation;
 import weka.core.Attribute;
 import weka.core.DenseInstance;
@@ -43,6 +47,16 @@ import javax.xml.transform.dom.*;
 import javax.xml.transform.stream.*;
 
 import org.xml.sax.*;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYErrorRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.data.xy.XYIntervalSeries;
+import org.jfree.data.xy.XYIntervalSeriesCollection;
 import org.w3c.dom.*;
 
 public class Util {
@@ -380,6 +394,65 @@ public class Util {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	public static JPanel graphSeries(ErrorModule preds, Instances traindata, String targetName, String xaxis){
+		XYIntervalSeriesCollection xyDataset = new XYIntervalSeriesCollection();
+	    XYIntervalSeries predictions = new XYIntervalSeries(targetName+" predictions", false, false);
+	    XYIntervalSeries actual = new XYIntervalSeries(targetName, false, false);
+	    xyDataset.addSeries(predictions);
+	    xyDataset.addSeries(actual);
+	    
+	    ValueAxis timeAxis = null;
+	    boolean timeAxisIsDate = false;
+	    int timeIndex = -1;
+	    if (traindata.attribute(xaxis).isDate()) {
+	      timeAxis = new DateAxis("");
+          timeAxisIsDate = true;
+          timeIndex = traindata.attribute(xaxis).index();
+        }
+	    if (timeAxis == null) {
+	        timeAxis = new NumberAxis("");
+	        ((NumberAxis) timeAxis).setAutoRangeIncludesZero(false);
+	    }
+	    NumberAxis valueAxis = new NumberAxis("");
+	    valueAxis.setAutoRangeIncludesZero(false);
+	    List<NumericPrediction> predsForTargetAtI = preds.getPredictionsForTarget(targetName);
+	    double x, y;
+	    Attribute target= traindata.attribute(targetName);
+	    for (int i = 0; i < traindata.numInstances(); i++) {
+	    	if (timeAxisIsDate) {
+	    		x = traindata.instance(i).value(timeIndex);
+	    	} else {
+	    		x = i;
+	    	}
+	    	//y=predsForTargetAtI.get(i).predicted();
+	    	y=traindata.get(i).value(target);
+			actual.add(x, x, x, y, y, y);
+		}
+	    int offset= traindata.numInstances() - predsForTargetAtI.size();
+	    for (int i = 0; i < predsForTargetAtI.size(); i++) {
+	    	if (timeAxisIsDate) {
+	    		x = traindata.get(offset+i).value(timeIndex);
+	    	} else {
+	    		x = i;
+	    	}
+	    	y=predsForTargetAtI.get(i).predicted();
+	    	predictions.add(x, x, x, y, y, y);
+		}
+		
+	    XYErrorRenderer renderer = new XYErrorRenderer();
+	    renderer.setBaseLinesVisible(true);
+	    // renderer.setShapesFilled(true);
+	    XYPlot plot = new XYPlot(xyDataset, timeAxis, valueAxis, renderer);
+	    JFreeChart chart = new JFreeChart("Time series " + traindata.relationName(), JFreeChart.DEFAULT_TITLE_FONT,
+	        plot, true);
+	    chart.setBackgroundPaint(java.awt.Color.white);
+	    TextTitle chartTitle = chart.getTitle();
+	    String fontName = chartTitle.getFont().getFontName();
+	    java.awt.Font newFont = new java.awt.Font(fontName, java.awt.Font.PLAIN, 12);
+	    chartTitle.setFont(newFont);
+	    ChartPanel result = new ChartPanel(chart, false, true, true, true, false);
+	    return result;
 	}
 }
 
