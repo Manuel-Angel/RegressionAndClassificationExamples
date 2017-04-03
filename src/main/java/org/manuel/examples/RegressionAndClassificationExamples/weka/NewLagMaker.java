@@ -2394,7 +2394,6 @@ protected void setupPeriodicMaps(Instances insts) {
             if (!Utils.isMissingValue(current.value(primaryIndex))
               && !Utils.isMissingValue(j)) {
               String key = current.stringValue(primaryIndex);
-              System.out.println(" i "+ i +" atributo " + current.attribute(i).name()+" valor "+ current.value(i));
               String value = current.stringValue(i);
 
               if (candidateMap.get(key) == null) {

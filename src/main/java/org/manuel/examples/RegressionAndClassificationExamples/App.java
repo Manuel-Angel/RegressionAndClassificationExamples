@@ -36,9 +36,9 @@ public class App
     	//testPolynomialRegression();
     	//testXml();
     	//testBayesNetWithWeather();
-    	//testBayesNetWithWeather();
     	//testTimeSeries();
-    	testTimeSeriesGraphic();
+    	//testTimeSeriesGraphic();
+    	testBayesNetWithKw();
     }
     public static void testPolynomialRegression() throws Exception{
     	long time= System.currentTimeMillis();
@@ -77,7 +77,8 @@ public class App
     }
     public static void testBayesNetWithWeather(){
     	Instances data= Util.readXML("weather-10.xml");
-    	Instances filteredData=BayesianNetwork.filterInstancesForBayesNet(data);
+    	BayesianNetwork bn= new BayesianNetwork();
+    	Instances filteredData=bn.filterInstancesForBayesNet(data);
     	System.out.println("Filtered data:\n" +filteredData);
     	
     	BayesNet red= new BayesNet();
@@ -130,10 +131,8 @@ public class App
 		}
     }
     public static void testTimeSeriesGraphic(){
-    	try {
-			Instances datos = Util.instancesFromFile("SOLAR_PRODUCTION_TRIMED.arff");//SOLAR_PRODUCTION.arff//Util.readXML("weather-10.xml");
-			Instance last= datos.lastInstance();
-			//datos.delete(datos.numInstances()-1);
+    	try { //2009-04-05 03:00
+			Instances datos = Util.instancesFromFile("SOLAR_PRODUCTION.arff");//SOLAR_PRODUCTION.arff//Util.readXML("weather-10.xml");
 			String targetName="kw" ;
 			String xaxis="date";
 			
@@ -172,16 +171,50 @@ public class App
 	        timeseries.setPrimeWindowSize(24);
 	        //List<ErrorModule> preds= timeseries.classifyInstance(train, test);
 	        List<ErrorModule> preds= timeseries.forecast(train, test);
-			Util.testTimeSeries(timeseries.forecaster, train, test, null);//System.out
+			//Util.testTimeSeries(timeseries.forecaster, train, test, null);//System.out
 			
 			JFreeChartDriver chart = new JFreeChartDriver();
 			List<Integer> stepsToPlot= new ArrayList<>(2);
 			stepsToPlot.add(1);
-			//TODO also graph all the training data
 			//JPanel graph= chart.getGraphPanelSteps(timeseries, preds, targetName, stepsToPlot, 0, train);
 			JPanel graph= Util.graphSeries(preds.get(0), datos, targetName, xaxis);
 			
 			JFrame jf = new JFrame("Time series");
+			jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+			jf.setSize(800, 600);
+			jf.getContentPane().setLayout(new BorderLayout());
+			jf.getContentPane().add(graph, BorderLayout.CENTER);
+			jf.setVisible(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    public static void testBayesNetWithKw(){
+    	BayesianNetwork bn= new BayesianNetwork();
+    	String targetName="kw" ;
+		String xaxis="date";
+    	try {
+			Instances datos = Util.instancesFromFile("SOLAR_PRODUCTION.arff");
+			int numInstPred=48;
+			int attIndex= datos.attribute(targetName).index();
+			datos.setClassIndex(attIndex);
+			int size=datos.numInstances();
+			Instances train = new Instances(datos, 0, size - numInstPred);
+	        Instances test = new Instances(datos, size - numInstPred, numInstPred);
+	        
+	        bn.buildClassifier(train);
+			
+	        List<ErrorModule> preds= bn.trainAndTest(train, test);
+			
+			JFreeChartDriver chart = new JFreeChartDriver();
+			List<Integer> stepsToPlot= new ArrayList<>(2);
+			stepsToPlot.add(1);
+			JPanel graph= Util.graphSeries(preds.get(0), datos, targetName, xaxis);
+			
+			ErrorModule er=preds.get(0);
+			//TODO calcular el error
+			
+			JFrame jf = new JFrame("Red bayesiana");
 			jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			jf.setSize(800, 600);
 			jf.getContentPane().setLayout(new BorderLayout());
